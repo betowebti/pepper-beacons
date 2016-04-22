@@ -5,14 +5,14 @@ var beacon_scenarios = Array();
 var geofence_scenarios = Array();
 
 var ngApp = angular.module('ngApp', [
-  'ionic', 
+  'ionic',
   'pascalprecht.translate',
-  'ngCordova', 
+  'ngCordova',
   'ngResource',
-  'ngCordovaBeacon', 
-  'angularMoment', 
-  'ngApp.controllers', 
-  'ngApp.directives', 
+  'ngCordovaBeacon',
+  'angularMoment',
+  'ngApp.controllers',
+  'ngApp.directives',
   'ngApp.filters',
   'ngApp.AppFactory',
   'ngApp.AppServices',
@@ -37,27 +37,24 @@ var ngApp = angular.module('ngApp', [
 .run(function($ionicPlatform, $cordovaStatusbar, $window, $translate) {
 
   $ionicPlatform.ready(function() {
-  if (ionic.Platform.isIOS()) {
-    // Ask permission for notifications (required for iOS)
-    $window.plugin.notification.local.registerPermission();
+    if (ionic.Platform.isIOS()) {
+      // Ask permission for notifications (required for iOS)
+      $window.plugin.notification.local.registerPermission();
 
-    //$cordovaBeacon.requestAlwaysAuthorization();
+      // Ask permission for background location
+      // Required for iOS when monitoring beacons when app is in background
+      $window.cordova.plugins.locationManager.requestAlwaysAuthorization();
+    }
 
-    // Ask permission for background location
-    // Required for iOS when monitoring beacons when app is in background
-    $window.cordova.plugins.locationManager.requestAlwaysAuthorization();
-    //$window.cordova.plugins.locationManager.requestWhenInUseAuthorization();
-  }
-
-  if(typeof navigator.globalization !== "undefined") {
-    navigator.globalization.getPreferredLanguage(function(language) {
-     $translate.use((language.value).split("-")[0]).then(function(data) {
-      console.log("getPreferredLanguage SUCCESS -> " + data);
-     }, function(error) {
-      console.log("getPreferredLanguage ERROR -> " + error);
-    });
-    }, null);
-  }
+    if (typeof navigator.globalization !== "undefined") {
+      navigator.globalization.getPreferredLanguage(function(language) {
+        $translate.use((language.value).split("-")[0]).then(function(data) {
+          console.log("getPreferredLanguage SUCCESS -> " + data);
+        }, function(error) {
+          console.log("getPreferredLanguage ERROR -> " + error);
+        });
+      }, null);
+    }
 
     // If we have the keyboard plugin, let use it
     if (window.cordova && window.cordova.plugins.Keyboard) {
@@ -67,35 +64,30 @@ var ngApp = angular.module('ngApp', [
       cordova.plugins.Keyboard.disableScroll(true);
     }
 
-    document.addEventListener("pause", function() { app_status = 'pause'; }, false);
-    document.addEventListener("resume", function() { app_status = 'resume'; }, false);
-    document.addEventListener("deviceready", function() { app_status = 'ready'; }, false);
+    document.addEventListener("pause", function() {
+      app_status = 'pause';
+    }, false);
+    document.addEventListener("resume", function() {
+      app_status = 'resume';
+    }, false);
+    document.addEventListener("deviceready", function() {
+      app_status = 'ready';
+    }, false);
 
-  if(ionic.Platform.isIOS())
-  {
-    inAppBrowserCfg = {
-          location: 'no',
-          clearcache: 'no',
-          toolbar: 'yes'
-    };
-  }
-  else
-  {
-    inAppBrowserCfg = {
-          location: 'yes',
-          clearcache: 'no',
-          toolbar: 'yes'
-    };
-  }
-
-    /*
-     * Statusbar
-
-    if (window.StatusBar) {
-      $cordovaStatusbar.overlaysWebView(true);
-      $cordovaStatusbar.style(1);
+    // InAppBrowser config based on platform
+    if (ionic.Platform.isIOS()) {
+      inAppBrowserCfg = {
+        location: 'no',
+        clearcache: 'no',
+        toolbar: 'yes'
+      };
+    } else {
+      inAppBrowserCfg = {
+        location: 'yes',
+        clearcache: 'no',
+        toolbar: 'yes'
+      };
     }
-     */
   });
 })
 
@@ -104,22 +96,15 @@ var ngApp = angular.module('ngApp', [
   $translateProvider.useSanitizeValueStrategy(null);
 
   $translateProvider.useStaticFilesLoader({
-  prefix: 'i18n/',
-  suffix: '.json'
+    prefix: 'i18n/',
+    suffix: '.json'
   });
 
   $translateProvider.preferredLanguage('en');
   $translateProvider.fallbackLanguage('en');
 
   $ionicConfigProvider.backButton.previousTitleText(false).text('');
-  /*$ionicConfigProvider.tabs.position("bottom");*/
   $ionicConfigProvider.views.transition('none');
-
-/*
-  if (! ionic.Platform.isIOS()) {
-    $ionicConfigProvider.scrolling.jsScrolling(true);
-  }
-*/
 
   $sceDelegateProvider.resourceUrlWhitelist(['self', '**']);
 

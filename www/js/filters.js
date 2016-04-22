@@ -7,10 +7,10 @@ angular.module('ngApp.filters', [])
 }])
 
 .filter('escapeSingleQuote', function() {
-  return function (text) {
+  return function(text) {
     if (text) {
       return text.
-        replace(/'/g, '&#39;');
+      replace(/'/g, '&#39;');
     }
     return '';
   }

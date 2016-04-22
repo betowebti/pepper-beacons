@@ -1,7 +1,6 @@
 /*
  * Used for generic factories
  */
-
 angular.module('ngApp.AppFactory', [])
 
 /*

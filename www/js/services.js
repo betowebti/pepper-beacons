@@ -1,7 +1,6 @@
 /*
  * Used for generic services
  */
-
 angular.module('ngApp.AppServices', [])
 
 /*
@@ -14,8 +13,7 @@ angular.module('ngApp.AppServices', [])
    * Log
    */
 
-  this.log = function($scope, log)
-  {
+  this.log = function($scope, log) {
     $scope.debug.log.push(log);
     console.log(log);
   }
@@ -24,8 +22,7 @@ angular.module('ngApp.AppServices', [])
    * Reset database
    */
 
-  this.resetDatabase = function()
-  {
-    
+  this.resetDatabase = function() {
+
   }
 });

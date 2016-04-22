@@ -2,8 +2,7 @@
  * --------------------------------------------------------------------------------------------
  * Factory
  */
- 
- angular.module('ngApp.ApiFactory', [])
+angular.module('ngApp.ApiFactory', [])
 
 /*
  * Persist view url / code throughout app's life
@@ -36,7 +35,7 @@ angular.module('ngApp.ApiServices', [])
 
   this.handshake = function($scope, url, pass_on) {
     var self = this;
-  if (typeof pass_on === 'undefined') pass_on = false;
+    if (typeof pass_on === 'undefined') pass_on = false;
 
     if (PROXIMITY_PLATFORM.enabled === true) {
       // In case no url is provided, use the one from the current scope
@@ -60,39 +59,39 @@ angular.module('ngApp.ApiServices', [])
       });
 
       var request = $http({
-        method: 'post',
-        url: PROXIMITY_PLATFORM.api_endpoint + '/api/v1/remote/handshake',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        params: {
-          url: url,
-          lat: $scope.geo.lat,
-          lng: $scope.geo.lng,
-          uuid: $scope.device.uuid,
-          model: $scope.device.model,
-          platform: $scope.device.platform
-        }
-      })
-      .success(function(data, status, headers, config) {
+          method: 'post',
+          url: PROXIMITY_PLATFORM.api_endpoint + '/api/v1/remote/handshake',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          params: {
+            url: url,
+            lat: $scope.geo.lat,
+            lng: $scope.geo.lng,
+            uuid: $scope.device.uuid,
+            model: $scope.device.model,
+            platform: $scope.device.platform
+          }
+        })
+        .success(function(data, status, headers, config) {
 
-        DebugService.log($scope, 'Remote data loaded ↓');
-        DebugService.log($scope, data);
+          DebugService.log($scope, 'Remote data loaded ↓');
+          DebugService.log($scope, data);
 
-        // Set beacons
-        if (data.content.found) {
-          DebugService.log($scope, 'Url / code recognized');
-        }
+          // Set beacons
+          if (data.content.found) {
+            DebugService.log($scope, 'Url / code recognized');
+          }
 
-    data.pass_on = pass_on;
+          data.pass_on = pass_on;
 
-        deferred.resolve(data);
-      })
-      .error(function(data, status) {
-        // log error
-        DebugService.log($scope, 'Post error api.js, use offline data');
-        deferred.reject();
-      });
+          deferred.resolve(data);
+        })
+        .error(function(data, status) {
+          // log error
+          DebugService.log($scope, 'Post error api.js, use offline data');
+          deferred.reject();
+        });
 
       return deferred.promise;
     }
@@ -128,36 +127,36 @@ angular.module('ngApp.ApiServices', [])
       });
 
       var request = $http({
-        method: 'post',
-        url: PROXIMITY_PLATFORM.api_endpoint + '/api/v1/remote/scenario',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        params: {
-          scenario_id: scenario_id,
-          type_id: type_id,
-          type: type,
-          state: state,
-          app_id: app_id,
-          site_id: site_id,
-          lat: $scope.geo.lat,
-          lng: $scope.geo.lng,
-          uuid: $scope.device.uuid,
-          model: $scope.device.model,
-          platform: $scope.device.platform
-        }
-      })
-      .success(function(data, status, headers, config) {
+          method: 'post',
+          url: PROXIMITY_PLATFORM.api_endpoint + '/api/v1/remote/scenario',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          params: {
+            scenario_id: scenario_id,
+            type_id: type_id,
+            type: type,
+            state: state,
+            app_id: app_id,
+            site_id: site_id,
+            lat: $scope.geo.lat,
+            lng: $scope.geo.lng,
+            uuid: $scope.device.uuid,
+            model: $scope.device.model,
+            platform: $scope.device.platform
+          }
+        })
+        .success(function(data, status, headers, config) {
 
-        DebugService.log($scope, 'Interaction post success');
+          DebugService.log($scope, 'Interaction post success');
 
-        deferred.resolve(data);
-      })
-      .error(function(data, status) {
-        // log error
-        DebugService.log($scope, 'Post error api.js interaction');
-        deferred.reject();
-      });
+          deferred.resolve(data);
+        })
+        .error(function(data, status) {
+          // log error
+          DebugService.log($scope, 'Post error api.js interaction');
+          deferred.reject();
+        });
 
       return deferred.promise;
     }

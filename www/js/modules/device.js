@@ -52,8 +52,7 @@ angular.module('ngApp.DeviceServices', [])
    * Set device information
    */
 
-  this.loadDevice = function($scope)
-  {
+  this.loadDevice = function($scope) {
 
     document.addEventListener("deviceready", function() {
 

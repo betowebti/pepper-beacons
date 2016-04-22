@@ -2,14 +2,13 @@
  * --------------------------------------------------------------------------------------------
  * Factory
  */
- 
- angular.module('ngApp.ViewFactory', [])
+angular.module('ngApp.ViewFactory', [])
 
 /*
  * Persist view url / code throughout app's life
  */
 
-.factory('view', function(PROXIMITY_PLATFORM){
+.factory('view', function(PROXIMITY_PLATFORM) {
   return {
     title: PROXIMITY_PLATFORM.default_title,
     input: '',
@@ -39,55 +38,44 @@ angular.module('ngApp.ViewServices', [])
    * ViewService.openView($scope, url);
    */
 
-  this.openView = function($scope, url, parseBoard, setInput)
-  {
+  this.openView = function($scope, url, parseBoard, setInput) {
     // Show debug
-    if (url == 'debug on')
-    {
+    if (url == 'debug on') {
       $scope.debug.nav = true;
       return;
     }
 
-  if ($cordovaNetwork.isOffline())
-  {
-    $ionicPopup.alert({
-    title: $translate.instant('no_internet_connection')
-    }).then(function(res) {
-    });
+    if ($cordovaNetwork.isOffline()) {
+      $ionicPopup.alert({
+        title: $translate.instant('no_internet_connection')
+      }).then(function(res) {});
 
-    return;
-  }
+      return;
+    }
 
-  $ionicLoading.show();
+    $ionicLoading.show();
 
     if (typeof setInput === 'undefined') setInput = true; // If set to false, the address bar won't be updated
 
-    if (typeof url === 'undefined') 
-    {
+    if (typeof url === 'undefined') {
       url = $scope.view.input;
-    }
-    else
-    {
+    } else {
       if (setInput) $scope.view.input = url;
     }
 
     if (typeof parseBoard === 'undefined') parseBoard = false; // If set to true, this will refresh beacons / geofences to new view + unsubscribe previous view
 
-    if (url == 'about:blank' || url == '' || typeof url === 'undefined')
-    {
-    $ionicLoading.hide();
+    if (url == 'about:blank' || url == '' || typeof url === 'undefined') {
+      $ionicLoading.hide();
       return;
     }
 
     // Check for querystring to add additional information
     var hasQsChars = new RegExp("[?&]");
 
-    if (hasQsChars.test(url))
-    {
+    if (hasQsChars.test(url)) {
       querystring = '&src=app&lat=' + $scope.geo.lat + '&lng=' + $scope.geo.lng;
-    } 
-    else 
-    {
+    } else {
       querystring = '?src=app&lat=' + $scope.geo.lat + '&lng=' + $scope.geo.lng;
     }
 
@@ -96,34 +84,29 @@ angular.module('ngApp.ViewServices', [])
     var isUrl = true;
 
     // Parse input, starts with http ?
-    if (url.slice(0, 7) != "http://" && url.slice(0, 8) != "https://")
-    {
+    if (url.slice(0, 7) != "http://" && url.slice(0, 8) != "https://") {
       // Check for dot (.) to see if it's a code or url
       var hasDot = new RegExp("[.]");
 
-      if (hasDot.test(url))
-      {
+      if (hasDot.test(url)) {
         url = 'http://' + url;
         $scope.view.browser = url + $scope.view.querystring;
         $scope.view.input = url;
-      }
-      else
-      {
+      } else {
         // It's a code, not a url
         isUrl = false;
       }
     }
 
-    if (isUrl)
-    {
+    if (isUrl) {
       inAppBrowser = $cordovaInAppBrowser.open(url + querystring, '_blank', inAppBrowserCfg)
-      .then(function(event) {
-        // success
-      })
-      .catch(function(event) {
-        // error
-        $cordovaInAppBrowser.close();
-      });
+        .then(function(event) {
+          // success
+        })
+        .catch(function(event) {
+          // error
+          $cordovaInAppBrowser.close();
+        });
     }
 
     // Get response from API call
@@ -134,22 +117,20 @@ angular.module('ngApp.ViewServices', [])
       $scope.view.title = data.content.name;
 
       // Data is found and the active notification board is updated
-      if (data.content.found)
-      {
+      if (data.content.found) {
         // The input was a code, not a url. Now we can set the corresponding url in the browser and address bar input
-        if (! isUrl)
-        {
+        if (!isUrl) {
           $scope.view.browser = data.content.url + $scope.view.querystring;
           $scope.view.input = data.content.url;
 
           inAppBrowser = $cordovaInAppBrowser.open($scope.view.browser, '_blank', inAppBrowserCfg)
-          .then(function(event) {
-            // success
-          })
-          .catch(function(event) {
-            // error
-            $cordovaInAppBrowser.close();
-          });
+            .then(function(event) {
+              // success
+            })
+            .catch(function(event) {
+              // error
+              $cordovaInAppBrowser.close();
+            });
         }
 
         // Set globals
@@ -162,33 +143,27 @@ angular.module('ngApp.ViewServices', [])
         $scope.api.previous_notification_board = $scope.api.active_notification_board;
         $scope.api.active_notification_board = data;
 
-        if (parseBoard)
-        {
+        if (parseBoard) {
           BeaconService.parseActiveBeacons($scope);
           GeofenceService.parseActiveGeofences($scope);
         }
-    $ionicLoading.hide();
-      }
-      else
-      {
-        if (! isUrl)
-        {
-      // Code not recognized
-      $ionicPopup.alert({
-      title: $translate.instant('code_not_recognized')
-      }).then(function(res) {
-      });
-    }
+        $ionicLoading.hide();
+      } else {
+        if (!isUrl) {
+          // Code not recognized
+          $ionicPopup.alert({
+            title: $translate.instant('code_not_recognized')
+          }).then(function(res) {});
+        }
         $scope.view.browser = url;
-    $ionicLoading.hide();
+        $ionicLoading.hide();
       }
     }, function() {
-    // Error
-    $ionicPopup.alert({
-    title: $translate.instant('connection_error')
-    }).then(function(res) {
+      // Error
+      $ionicPopup.alert({
+        title: $translate.instant('connection_error')
+      }).then(function(res) {});
+      $ionicLoading.hide();
     });
-    $ionicLoading.hide();
-  });
   }
 });

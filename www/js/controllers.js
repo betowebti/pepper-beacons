@@ -78,56 +78,51 @@ angular.module('ngApp.controllers', ['ngApp.config'])
    */
 
   document.addEventListener("deviceready", function() {
-  //cordova.plugins.locationManager.enableDebugNotifications();
 
-  db = $cordovaSQLite.openDB({
-    name: PROXIMITY_PLATFORM.sqlite.db_name, 
-    location: PROXIMITY_PLATFORM.sqlite.location, 
-    androidDatabaseImplementation: PROXIMITY_PLATFORM.sqlite.androidDatabaseImplementation, 
-    androidLockWorkaround: PROXIMITY_PLATFORM.sqlite.androidLockWorkaround
-  });
-
-  // Check if Bluetooth is enabled (Andoird only, iOS seems to be buggy)
-  if (ionic.Platform.isAndroid())
-  {
-    $cordovaBeacon.isBluetoothEnabled()
-    .then(function(isEnabled) {
-      console.log("isBluetoothEnabled: " + isEnabled);
-      if (! isEnabled)
-      {
-        if (ionic.Platform.isIOS())
-        {/*
-        var alertPopup = $ionicPopup.alert({
-          template: 'Please turn on Bluetooth to track beacons.'
-        });
-        */
-        }
-        else
-        {
-        var alertPopup = $ionicPopup.alert({
-          title: '<i class="ion-bluetooth"></i> ' + $translate.instant('bluetooth'),
-          template: $translate.instant('turn_on_bluetooth')
-        });
-  
-  /*        $cordovaBeacon.enableBluetooth();*/
-        }
-      }
+    db = $cordovaSQLite.openDB({
+      name: PROXIMITY_PLATFORM.sqlite.db_name,
+      location: PROXIMITY_PLATFORM.sqlite.location,
+      androidDatabaseImplementation: PROXIMITY_PLATFORM.sqlite.androidDatabaseImplementation,
+      androidLockWorkaround: PROXIMITY_PLATFORM.sqlite.androidLockWorkaround
     });
-  }
 
-  // Get language from database setting
+    // Check if Bluetooth is enabled (Andoird only, iOS seems to be buggy)
+    if (ionic.Platform.isAndroid()) {
+      $cordovaBeacon.isBluetoothEnabled()
+        .then(function(isEnabled) {
+          console.log("isBluetoothEnabled: " + isEnabled);
+          if (!isEnabled) {
+            if (ionic.Platform.isIOS()) {
+              /*
+              var alertPopup = $ionicPopup.alert({
+                template: 'Please turn on Bluetooth to track beacons.'
+              });
+              */
+            } else {
+              var alertPopup = $ionicPopup.alert({
+                title: '<i class="ion-bluetooth"></i> ' + $translate.instant('bluetooth'),
+                template: $translate.instant('turn_on_bluetooth')
+              });
+
+              // Works for Android only, but some people don't like an app to turn on bluetooth
+              /*$cordovaBeacon.enableBluetooth();*/
+            }
+          }
+        });
+    }
+
+    // Get language from database setting
     var promise = DataService.getSetting('app_language');
 
     promise.then(function(value) {
-    if (value != null)
-    {
-    $translate.use(value);
-    console.log('Set app_language: ' + value);
-    }
+      if (value != null) {
+        $translate.use(value);
+        console.log('Set app_language: ' + value);
+      }
     });
 
     /*
-      * --------------------------------------------------------------------
+     * --------------------------------------------------------------------
      * QR scanner
      */
 
@@ -156,51 +151,44 @@ angular.module('ngApp.controllers', ['ngApp.config'])
         }, function(error) {
           // An error occurred
           alert(error.text);
+
         });
     };
 
     /*
-      * --------------------------------------------------------------------
+     * --------------------------------------------------------------------
      * Enter code
      */
 
     $scope.enterCode = function() {
-    $scope.data = {};
-    $scope.data.code = null;
-    var enterCodePopup = $ionicPopup.show({
-    template: '<input type="text" ng-model="data.code">',
-    title: $translate.instant('enter_code'),
-    scope: $scope,
-    buttons: [
-      { text: $translate.instant('cancel') },
-      {
-      text: '<b>' + $translate.instant('ok') + '</b>',
-      type: 'button-positive',
-      onTap: function(e) {
-        if (!$scope.data.code) {
-        //don't allow the user to close unless (s)he enters code
-        e.preventDefault();
-        } else {
-        return $scope.data.code;
-        }
-      }
-      }
-    ]
-    });
-    
-    enterCodePopup.then(function(code) {
-    if (typeof code === 'undefined') return;
-    console.log('Tapped!', code);
-    ViewService.openView($scope, code, true);
-    });
+      $scope.data = {};
+      $scope.data.code = null;
+      var enterCodePopup = $ionicPopup.show({
+        template: '<input type="text" ng-model="data.code">',
+        title: $translate.instant('enter_code'),
+        scope: $scope,
+        buttons: [{
+          text: $translate.instant('cancel')
+        }, {
+          text: '<b>' + $translate.instant('ok') + '</b>',
+          type: 'button-positive',
+          onTap: function(e) {
+            if (!$scope.data.code) {
+              //don't allow the user to close unless (s)he enters code
+              e.preventDefault();
+            } else {
+              return $scope.data.code;
+            }
+          }
+        }]
+      });
+
+      enterCodePopup.then(function(code) {
+        if (typeof code === 'undefined') return;
+        console.log('Tapped!', code);
+        ViewService.openView($scope, code, true);
+      });
     };
-
-    /*
-      * --------------------------------------------------------------------
-     * Hide splashscreen
-     */
-
-    //$cordovaSplashscreen.hide();
 
   }, false);
 
@@ -230,8 +218,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
    * Wait for device geo location to be loaded (or failing)
    */
 
-  $scope.geoLoaded = function() 
-  {
+  $scope.geoLoaded = function() {
     /*
      * ------------------------------------------------------------------------
      * Load favorites
@@ -252,11 +239,11 @@ angular.module('ngApp.controllers', ['ngApp.config'])
    * Listen for InAppBrowser events
    */
 
-  $rootScope.$on('$cordovaInAppBrowser:loadstart', function(e, event) {  });
-  $rootScope.$on('$cordovaInAppBrowser:loadstop', function(e, event) { });
-  $rootScope.$on('$cordovaInAppBrowser:loaderror', function(e, event) { });
+  $rootScope.$on('$cordovaInAppBrowser:loadstart', function(e, event) {});
+  $rootScope.$on('$cordovaInAppBrowser:loadstop', function(e, event) {});
+  $rootScope.$on('$cordovaInAppBrowser:loaderror', function(e, event) {});
 
-  $rootScope.$on('$cordovaInAppBrowser:exit', function(e, event){
+  $rootScope.$on('$cordovaInAppBrowser:exit', function(e, event) {
     inAppBrowser = null;
   });
 
@@ -266,8 +253,8 @@ angular.module('ngApp.controllers', ['ngApp.config'])
 
   $scope.safeApply = function(fn) {
     var phase = this.$root.$$phase;
-    if(phase == '$apply' || phase == '$digest') {
-      if(fn && (typeof(fn) === 'function')) {
+    if (phase == '$apply' || phase == '$digest') {
+      if (fn && (typeof(fn) === 'function')) {
         fn();
       }
     } else {
@@ -325,9 +312,9 @@ angular.module('ngApp.controllers', ['ngApp.config'])
 
   $scope.showActionSheet = function(name, id, url) {
     $ionicActionSheet.show({
-      buttons: [
-        { text: '<i class="icon ion-android-open dark hide-ios"></i> ' + $translate.instant('open_app') }
-      ],
+      buttons: [{
+        text: '<i class="icon ion-android-open dark hide-ios"></i> ' + $translate.instant('open_app')
+      }],
       destructiveText: '<i class="icon ion-android-delete royal hide-ios"></i> ' + $translate.instant('delete_bookmark'),
       titleText: name,
       cancelText: $translate.instant('cancel'),
@@ -337,8 +324,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
       buttonClicked: function(index) {
 
         // Open app
-        if (index == 0)
-        {
+        if (index == 0) {
           DebugService.log($scope, 'App opened: ' + url);
           ViewService.openView($scope, url);
         }
@@ -347,30 +333,29 @@ angular.module('ngApp.controllers', ['ngApp.config'])
       },
       destructiveButtonClicked: function() {
 
-    var confirmPopup = $ionicPopup.confirm({
-      title: name,
-      template: $translate.instant('confirm_delete_bookmark'),
-      buttons: [
-      { text: $translate.instant('cancel') },
-      {
-        text: '<b>' + $translate.instant('ok') + '</b>',
-        type: 'button-positive',
-        onTap: function(e) {
-        DebugService.log($scope, 'App deleted: ' + url);  
-        DataService.deleteBookmark($scope, id);
-        }
-      }
-      ]
-    });
-/*
-    confirmPopup.then(function(res) {
-      if(res) {
-      DebugService.log($scope, 'App deleted: ' + url);  
-      DataService.deleteBookmark($scope, id);
-      }
-    });
-*/
-    return true;
+        var confirmPopup = $ionicPopup.confirm({
+          title: name,
+          template: $translate.instant('confirm_delete_bookmark'),
+          buttons: [{
+            text: $translate.instant('cancel')
+          }, {
+            text: '<b>' + $translate.instant('ok') + '</b>',
+            type: 'button-positive',
+            onTap: function(e) {
+              DebugService.log($scope, 'App deleted: ' + url);
+              DataService.deleteBookmark($scope, id);
+            }
+          }]
+        });
+        /*
+        confirmPopup.then(function(res) {
+          if(res) {
+          DebugService.log($scope, 'App deleted: ' + url);  
+          DataService.deleteBookmark($scope, id);
+          }
+        });
+        */
+        return true;
       }
     });
   };
@@ -396,7 +381,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
   var self = $scope;
 
   $scope.openContent = function($index, url) {
-    $scope.safeApply(function () {
+    $scope.safeApply(function() {
       $scope.scenario.selectedIndex = $index;
       $scope.scenario.history_url = url;
       $scope.scenario.content_title = $scope.scenario.history[$index].title;
@@ -410,8 +395,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
    * Callback after iframe is loaded
    */
 
-  $scope.iframeLoadedCallBack = function()
-  {
+  $scope.iframeLoadedCallBack = function() {
     $scope.scenario.show_loader = false;
     DebugService.log($scope, 'content iframe loaded');
   };
@@ -437,8 +421,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
    * Open view
    */
 
-  $scope.openEddystone = function(url)
-  {
+  $scope.openEddystone = function(url) {
     ViewService.openView($scope, url);
   };
 
@@ -469,12 +452,12 @@ angular.module('ngApp.controllers', ['ngApp.config'])
   $scope.debug = debug;
   $scope.language = $translate.use();
 
-  $scope.changeLanguage = function(language)
-  {
-  console.log('Language change ' + language);
+  $scope.changeLanguage = function(language) {
+    console.log('Language change ' + language);
     $translate.use(language);
-  DataService.setSetting('app_language', language);
+    DataService.setSetting('app_language', language);
   };
+
 })
 
 /*
@@ -488,6 +471,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
   /*
    * Globals
    */
+
 
   $scope.view = view;
   $scope.debug = debug;
@@ -515,15 +499,13 @@ angular.module('ngApp.controllers', ['ngApp.config'])
   $scope.debug = debug;
 
   $scope.resetDatabase = function() {
-    if (confirm('Are you sure?'))
-    {
+    if (confirm('Are you sure?')) {
       DataService.loadFavs($scope, true);
     }
   };
 
   $scope.clearLog = function() {
-    if (confirm('Are you sure?'))
-    {
+    if (confirm('Are you sure?')) {
       $scope.debug.length = 0;
       $scope.debug = [];
     }

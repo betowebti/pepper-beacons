@@ -2,8 +2,7 @@
  * --------------------------------------------------------------------------------------------
  * Factory
  */
- 
- angular.module('ngApp.DataFactory', [])
+angular.module('ngApp.DataFactory', [])
 
 /*
  * Favorites
@@ -33,13 +32,11 @@ angular.module('ngApp.DataServices', [])
    * Load favorites
    */
 
-  this.loadFavs = function($scope, resetDatabase, http)
-  {
+  this.loadFavs = function($scope, resetDatabase, http) {
     if (typeof resetDatabase === 'undefined') resetDatabase = false;
     if (typeof http === 'undefined') http = true;
 
-    if (http)
-    {
+    if (http) {
       /**
        * Unsubscribe all beacons + geofences
        */
@@ -57,11 +54,10 @@ angular.module('ngApp.DataServices', [])
          * Create table if not exists
          */
 
-        if (resetDatabase)
-    {
-      tx.executeSql('DROP TABLE IF EXISTS settings');
-      tx.executeSql('DROP TABLE IF EXISTS favs');
-    }
+        if (resetDatabase) {
+          tx.executeSql('DROP TABLE IF EXISTS settings');
+          tx.executeSql('DROP TABLE IF EXISTS favs');
+        }
         tx.executeSql('CREATE TABLE IF NOT EXISTS favs (id integer primary key, name text, icon text, url text, api text, created integer)');
 
         db.transaction(function(tx) {
@@ -69,10 +65,8 @@ angular.module('ngApp.DataServices', [])
 
             $scope.favs.items.length = 0;
 
-            if (result.rows.length > 0)
-            {
-              for (var i=0; i < result.rows.length; i++)
-              {
+            if (result.rows.length > 0) {
+              for (var i = 0; i < result.rows.length; i++) {
                 var id = result.rows.item(i).id;
                 var api = result.rows.item(i).api;
                 var icon = result.rows.item(i).icon;
@@ -81,23 +75,21 @@ angular.module('ngApp.DataServices', [])
 
                 if (icon == null || $cordovaNetwork.isOffline()) icon = 'img/icons/globe/120.png';
 
-        $scope.$apply(function () {
-          if (url != null)
-          {
-          var fav = {
-            'id': id,
-            'icon': icon,
-            'name': name,
-            'url': url,
-            'api': api
-          };
+                $scope.$apply(function() {
+                  if (url != null) {
+                    var fav = {
+                      'id': id,
+                      'icon': icon,
+                      'name': name,
+                      'url': url,
+                      'api': api
+                    };
 
-          $scope.favs.items.push(fav);
-          }
-        });
+                    $scope.favs.items.push(fav);
+                  }
+                });
 
-                if (http && result.rows.item(i).url != null)
-                {
+                if (http && result.rows.item(i).url != null) {
 
                   /**
                    * Post to Proximity Platform API to get latest notification board changes
@@ -107,16 +99,15 @@ angular.module('ngApp.DataServices', [])
 
                   promise.then(
                     function(data) { // Request succeeded
-                      if (data !== false && data.pass_on !== false)
-                      {
+                      if (data !== false && data.pass_on !== false) {
                         $scope.api.favorite_notification_boards.push(data);
-    
+
                         BeaconService.extractFavBeacons($scope);
                         GeofenceService.extractFavGeofences($scope);
-    
+
                         DebugService.log($scope, 'Fav notification board loaded from remote ↓');
                         DebugService.log($scope, data);
-    
+
                         db.transaction(function(tx) {
                           tx.executeSql("UPDATE favs SET api = ?, name = ?, icon = ? WHERE id = ?;", [JSON.stringify(data), data.content.name, data.content.icon, data.pass_on.id], function(tx, result) {
                             DebugService.log($scope, 'Api response updated');
@@ -126,24 +117,22 @@ angular.module('ngApp.DataServices', [])
                     },
                     function(response) { // Request failed, use offline api data
                       $scope.api.favorite_notification_boards.push(JSON.parse(api));
-    
+
                       BeaconService.extractFavBeacons($scope);
                       GeofenceService.extractFavGeofences($scope);
-    
+
                       DebugService.log($scope, 'Fav notification board loaded from local ↓');
                       DebugService.log($scope, JSON.parse(api));
                     }
                   );
+                } else {
+                  // No http
+                  $scope.$apply();
                 }
-        else
-        {
-          // No http
-          $scope.$apply();
-        }
               };
             }
 
-            $scope.safeApply(function () {
+            $scope.safeApply(function() {
               $scope.favs.loading = false;
             });
           });
@@ -157,8 +146,7 @@ angular.module('ngApp.DataServices', [])
    * Add bookmark
    */
 
-  this.addBookmark = function($scope)
-  {
+  this.addBookmark = function($scope) {
     var self = this;
 
     var icon = $scope.view.icon;
@@ -169,8 +157,7 @@ angular.module('ngApp.DataServices', [])
     document.addEventListener("deviceready", function() {
       db.transaction(function(tx) {
         tx.executeSql("SELECT id FROM favs WHERE url = ?;", [url], function(tx, result) {
-          if (result.rows.length == 0)
-          {
+          if (result.rows.length == 0) {
             db.transaction(function(tx) {
               tx.executeSql("INSERT INTO favs (name, icon, url, api, created) VALUES (?, ?, ?, ?, ?);", [$scope.view.title, icon, url, JSON.stringify($scope.api.active_notification_board), now], function(tx, result) {
                 // Reload favorites
@@ -187,8 +174,7 @@ angular.module('ngApp.DataServices', [])
    * Delete bookmark
    */
 
-  this.deleteBookmark = function($scope, id)
-  {
+  this.deleteBookmark = function($scope, id) {
     var self = this;
 
     document.addEventListener("deviceready", function() {
@@ -200,14 +186,14 @@ angular.module('ngApp.DataServices', [])
           // Reload favorites
           self.loadFavs($scope);
 
-      $scope.view.input
-/*
-          $ionicPopup.alert({
-            title: 'Bookmark deleted'
-          }).then(function(res) {
-            DebugService.log($scope, 'Bookmark deleted: #' + id);
-          });
-*/
+          $scope.view.input
+            /*
+                      $ionicPopup.alert({
+                        title: 'Bookmark deleted'
+                      }).then(function(res) {
+                        DebugService.log($scope, 'Bookmark deleted: #' + id);
+                      });
+            */
         });
       });
     }, false);
@@ -217,29 +203,28 @@ angular.module('ngApp.DataServices', [])
    * Get setting
    */
 
-  this.getSetting = function(name)
-  {
+  this.getSetting = function(name) {
     var self = this;
 
-  // Create a promise for the db transaction
-  var deferred = $q.defer();
+    // Create a promise for the db transaction
+    var deferred = $q.defer();
 
     document.addEventListener("deviceready", function() {
 
-    /**
-     * Create settings table if not exists
-     */
+      /**
+       * Create settings table if not exists
+       */
 
       db.transaction(function(tx) {
-    tx.executeSql('CREATE TABLE IF NOT EXISTS settings (id integer primary key, name text, value text)');
- 
-    db.transaction(function(tx) {
-      tx.executeSql("SELECT value FROM settings WHERE name = ?;", [name], function(tx, result) {
-      var value = (result.rows.length == 0) ? null : result.rows.item(0).value;
-      console.log('get setting ' + name + ': ' + value);
-      deferred.resolve(value);
-      });
-    });
+        tx.executeSql('CREATE TABLE IF NOT EXISTS settings (id integer primary key, name text, value text)');
+
+        db.transaction(function(tx) {
+          tx.executeSql("SELECT value FROM settings WHERE name = ?;", [name], function(tx, result) {
+            var value = (result.rows.length == 0) ? null : result.rows.item(0).value;
+            console.log('get setting ' + name + ': ' + value);
+            deferred.resolve(value);
+          });
+        });
       });
 
     }, false);
@@ -251,39 +236,35 @@ angular.module('ngApp.DataServices', [])
    * Set setting
    */
 
-  this.setSetting = function(name, value)
-  {
+  this.setSetting = function(name, value) {
     var self = this;
 
     document.addEventListener("deviceready", function() {
 
-    /**
-     * Create settings table if not exists
-     */
-  
+      /**
+       * Create settings table if not exists
+       */
+
       db.transaction(function(tx) {
-    tx.executeSql('CREATE TABLE IF NOT EXISTS settings (id integer primary key, name text, value text)');
-  
-    db.transaction(function(tx) {
-      tx.executeSql("SELECT id FROM settings WHERE name = ?;", [name], function(tx, result) {
-      if (result.rows.length == 0) 
-      {
+        tx.executeSql('CREATE TABLE IF NOT EXISTS settings (id integer primary key, name text, value text)');
+
         db.transaction(function(tx) {
-        tx.executeSql("INSERT INTO settings (name, value) VALUES (?, ?);", [name, value], function(tx, result) {
-          console.log('Setting ' + name + ' inserted with ' + value);
+          tx.executeSql("SELECT id FROM settings WHERE name = ?;", [name], function(tx, result) {
+            if (result.rows.length == 0) {
+              db.transaction(function(tx) {
+                tx.executeSql("INSERT INTO settings (name, value) VALUES (?, ?);", [name, value], function(tx, result) {
+                  console.log('Setting ' + name + ' inserted with ' + value);
+                });
+              });
+            } else {
+              db.transaction(function(tx) {
+                tx.executeSql("UPDATE settings SET value = ? WHERE name = ?;", [value, name], function(tx, result) {
+                  console.log('Setting ' + name + ' updated to ' + value);
+                });
+              });
+            }
+          });
         });
-        });
-      }
-      else
-      {
-        db.transaction(function(tx) {
-        tx.executeSql("UPDATE settings SET value = ? WHERE name = ?;", [value, name], function(tx, result) {
-          console.log('Setting ' + name + ' updated to ' + value);
-        });
-        });
-      }
-      });
-    });
       });
 
     }, false);
