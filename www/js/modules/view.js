@@ -98,8 +98,11 @@ angular.module('ngApp.ViewServices', [])
       }
     }
 
+    var hideLoading = true;
+
     if (isUrl) {
-      inAppBrowser = $cordovaInAppBrowser.open(url + querystring, '_blank', inAppBrowserCfg)
+      hideLoading = false;
+      inAppBrowser = $cordovaInAppBrowser.open(url + querystring, inAppBrowserTarget, inAppBrowserCfg)
         .then(function(event) {
           // success
         })
@@ -120,10 +123,11 @@ angular.module('ngApp.ViewServices', [])
       if (data.content.found) {
         // The input was a code, not a url. Now we can set the corresponding url in the browser and address bar input
         if (!isUrl) {
+          hideLoading = false;
           $scope.view.browser = data.content.url + $scope.view.querystring;
           $scope.view.input = data.content.url;
 
-          inAppBrowser = $cordovaInAppBrowser.open($scope.view.browser, '_blank', inAppBrowserCfg)
+          inAppBrowser = $cordovaInAppBrowser.open($scope.view.browser, inAppBrowserTarget, inAppBrowserCfg)
             .then(function(event) {
               // success
             })
@@ -147,7 +151,10 @@ angular.module('ngApp.ViewServices', [])
           BeaconService.parseActiveBeacons($scope);
           GeofenceService.parseActiveGeofences($scope);
         }
-        $ionicLoading.hide();
+
+        if (hideLoading) {
+          $ionicLoading.hide();
+        }
       } else {
         if (!isUrl) {
           // Code not recognized

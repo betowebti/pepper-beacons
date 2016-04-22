@@ -240,8 +240,12 @@ angular.module('ngApp.controllers', ['ngApp.config'])
    */
 
   $rootScope.$on('$cordovaInAppBrowser:loadstart', function(e, event) {});
-  $rootScope.$on('$cordovaInAppBrowser:loadstop', function(e, event) {});
   $rootScope.$on('$cordovaInAppBrowser:loaderror', function(e, event) {});
+
+  $rootScope.$on('$cordovaInAppBrowser:loadstop', function(e, event) { 
+    $cordovaInAppBrowser.show(); 
+    $ionicLoading.hide();
+  });
 
   $rootScope.$on('$cordovaInAppBrowser:exit', function(e, event) {
     inAppBrowser = null;

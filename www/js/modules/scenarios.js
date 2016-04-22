@@ -30,7 +30,7 @@ angular.module('ngApp.ScenarioServices', [])
  * Scenario 
  */
 
-.service('ScenarioService', function($cordovaNetwork, DebugService, ApiService, $cordovaLocalNotification, $location, $cordovaInAppBrowser) {
+.service('ScenarioService', function($cordovaNetwork, DebugService, ApiService, $cordovaLocalNotification, $location, $cordovaInAppBrowser, $ionicLoading) {
 
   this.states = {
     'ProximityUnknown': 0,
@@ -136,6 +136,8 @@ angular.module('ngApp.ScenarioServices', [])
           // redirected
         });
       } else {
+        $ionicLoading.show();
+
         inAppBrowser = $cordovaInAppBrowser.open(open_url, '_blank', inAppBrowserCfg)
           .then(function(event) {
             // success

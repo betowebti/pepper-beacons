@@ -1,5 +1,6 @@
 var app_status = 'loading';
 var inAppBrowser = null;
+var inAppBrowserTarget = '_blank';
 var db, inAppBrowserCfg;
 var beacon_scenarios = Array();
 var geofence_scenarios = Array();
@@ -77,12 +78,14 @@ var ngApp = angular.module('ngApp', [
     // InAppBrowser config based on platform
     if (ionic.Platform.isIOS()) {
       inAppBrowserCfg = {
+        hidden: 'yes',
         location: 'no',
         clearcache: 'no',
         toolbar: 'yes'
       };
     } else {
       inAppBrowserCfg = {
+        hidden: 'yes',
         location: 'yes',
         clearcache: 'no',
         toolbar: 'yes'
