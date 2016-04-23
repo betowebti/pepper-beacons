@@ -5,7 +5,7 @@ Copyright Sem Kokhuis / Made with Pepper (2014-2016) - This software is licensed
 
 **Provide iBeacon and Geofence services to your business and customers.**
 
-This app uses the [Made with Pepper](https://www.madewithpepper.com) Proximity Marketing Platform API, https://madewithpepper.com/docs/v1/API/notification-boards.
+This app uses the [Made with Pepper](https://madewithpepper.com) Proximity Marketing Platform API, https://madewithpepper.com/docs/v1/API/notification-boards.
 
 ## Prerequisites
 The following libraries are required:
@@ -46,6 +46,7 @@ Finally we can add the platform(s) as we're used with Ionic. For more informatio
 For example:
 
 `$ ionic platform add android`
+
 `$ ionic run android`
 
 ## Configuration
