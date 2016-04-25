@@ -8,9 +8,9 @@ angular.module('ngApp.ViewFactory', [])
  * Persist view url / code throughout app's life
  */
 
-.factory('view', function(PROXIMITY_PLATFORM) {
+.factory('view', function() {
   return {
-    title: PROXIMITY_PLATFORM.default_title,
+    title: '',
     input: '',
     code: '',
     icon: null,
