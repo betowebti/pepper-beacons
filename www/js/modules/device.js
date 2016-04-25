@@ -79,7 +79,6 @@ angular.module('ngApp.DeviceServices', [])
           enableHighAccuracy: true
         })
         .then(function(position) {
-
           geo.lat = position.coords.latitude;
           geo.lng = position.coords.longitude;
           geo.alt = position.coords.altitude;
@@ -92,44 +91,51 @@ angular.module('ngApp.DeviceServices', [])
           $scope.geo = geo;
 
           $scope.geoLoaded();
-
         }, function(err) {
           // error
           DebugService.log($scope, err);
 
           $scope.geoLoaded();
         });
+    }, false);
+  }
 
-     /*
-       * Watch Geo Location
+  /**
+   * Update Geo Location
+   */
+
+  this.updateGeolocation = function($scope) {
+
+    document.addEventListener("deviceready", function() {
+
+      /*
+       * Get Geo Location
        */
 
-      var watch = $cordovaGeolocation
-        .watchPosition({
+      $cordovaGeolocation
+        .getCurrentPosition({
           timeout: 1000 * 10,
           maximumAge: 1000 * 10,
-          enableHighAccuracy: false
+          enableHighAccuracy: true
         })
-        .then(
-          null,
-          function(err) {
-            // error
-          },
-          function(position) {
+        .then(function(position) {
+          geo.lat = position.coords.latitude;
+          geo.lng = position.coords.longitude;
+          geo.alt = position.coords.altitude;
+          geo.accuracy = position.coords.accuracy;
+          geo.altitudeAccuracy = position.coords.altitudeAccuracy;
+          geo.heading = position.coords.heading;
+          geo.speed = position.coords.speed;
+          geo.timestamp = position.coords.timestamp;
 
-            $scope.safeApply(function() {
-              $scope.geo = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                alt: position.coords.altitude,
-                accuracy: position.coords.accuracy,
-                altitudeAccuracy: position.coords.altitudeAccuracy,
-                heading: position.coords.heading,
-                speed: position.coords.speed,
-                timestamp: position.coords.timestamp
-              }
-            });
+          $scope.geo = geo;
 
+          $scope.geoUpdated();
+        }, function(err) {
+          // error
+          DebugService.log($scope, err);
+
+          $scope.geoUpdated();
         });
     }, false);
   }
