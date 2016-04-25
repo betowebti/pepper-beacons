@@ -4,7 +4,7 @@ angular.module('ngApp.config', [])
  * ---------------------------------------------------
  * Made with Pepper Proximity Marketing Platform
  *
- * For information visit 
+ * For more information visit 
  * madewithpepper.com
  * ---------------------------------------------------
  */
