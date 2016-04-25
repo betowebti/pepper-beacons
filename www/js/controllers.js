@@ -297,10 +297,6 @@ angular.module('ngApp.controllers', ['ngApp.config'])
 
 .controller('AppsCtrl', function($scope, view, favs, device, geo, api, beacon, geofence, debug, $ionicTabsDelegate, $ionicActionSheet, $ionicPopup, $translate, DebugService, DataService, ViewService, DeviceService, BeaconService) {
 
-  $scope.selectTabWithIndex = function(index) {
-    $ionicTabsDelegate.deselect();
-  }
-
   /*
    * Globals
    */
