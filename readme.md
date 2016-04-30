@@ -52,7 +52,7 @@ For example:
 ## Configuration
 
 ### App name
-Make sure you update the config.xml in the root with a name and version for your app. Also update the page title found in /www/index.html.
+Make sure you update the config.xml in the root with a name and version for your app. Also update the page title found in /www/index.html and the "app_title" variable found in the translation files (/www/i18n/*.json).
 
 ### App icon and splash screen
 For more information on generating splash screen and icon images for all formats, visit http://ionicframework.com/docs/cli/icon-splashscreen.html.
