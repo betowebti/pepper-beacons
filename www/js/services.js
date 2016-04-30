@@ -17,12 +17,4 @@ angular.module('ngApp.AppServices', [])
     $scope.debug.log.push(log);
     console.log(log);
   }
-
-  /**
-   * Reset database
-   */
-
-  this.resetDatabase = function() {
-
-  }
 });
