@@ -47,14 +47,23 @@ var ngApp = angular.module('ngApp', [
       $window.cordova.plugins.locationManager.requestAlwaysAuthorization();
     }
 
-    if (typeof navigator.globalization !== "undefined") {
-      navigator.globalization.getPreferredLanguage(function(language) {
-        $translate.use((language.value).split("-")[0]).then(function(data) {
-          console.log("getPreferredLanguage SUCCESS -> " + data);
-        }, function(error) {
-          console.log("getPreferredLanguage ERROR -> " + error);
-        });
-      }, null);
+    // Get language from localStorage
+    var storage = window.localStorage;
+    var app_language = storage.getItem('app_language');
+
+    if (app_language == null)
+    {
+      if (typeof navigator.globalization !== "undefined") {
+        navigator.globalization.getPreferredLanguage(function(language) {
+          $translate.use((language.value).split("-")[0]).then(function(data) {
+            console.log("getPreferredLanguage SUCCESS -> " + data);
+          }, function(error) {
+            console.log("getPreferredLanguage ERROR -> " + error);
+          });
+        }, null);
+      }
+    } else {
+      $translate.use(app_language);
     }
 
     // If we have the keyboard plugin, let use it

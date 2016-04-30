@@ -111,16 +111,6 @@ angular.module('ngApp.controllers', ['ngApp.config'])
         });
     }
 
-    // Get language from database setting
-    var promise = DataService.getSetting('app_language');
-
-    promise.then(function(value) {
-      if (value != null) {
-        $translate.use(value);
-        console.log('Set app_language: ' + value);
-      }
-    });
-
     /*
      * --------------------------------------------------------------------
      * QR scanner
@@ -452,9 +442,11 @@ angular.module('ngApp.controllers', ['ngApp.config'])
   $scope.language = $translate.use();
 
   $scope.changeLanguage = function(language) {
-    console.log('Language change ' + language);
+    var storage = window.localStorage;
+    storage.setItem('app_language', language);
     $translate.use(language);
-    DataService.setSetting('app_language', language);
+
+    console.log('Language change ' + language);
   };
 
 })
