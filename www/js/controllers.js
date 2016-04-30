@@ -150,8 +150,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
           }
         }, function(error) {
           // An error occurred
-          alert(error.text);
-
+          alert('There was an error trying to use the camera. Make sure you give this app permission to use the camera. [' + error.text + ']');
         });
     };
 
