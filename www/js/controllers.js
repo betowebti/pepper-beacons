@@ -6,7 +6,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
  * ---------------------------------------------------
  */
 
-.controller('NavCtrl', function($scope, $rootScope, $translate, $ionicSideMenuDelegate, $location) {
+.controller('NavCtrl', function($scope, $rootScope, $ionicSideMenuDelegate, $location) {
 
   $rootScope.location = $location;
 
@@ -54,7 +54,8 @@ angular.module('ngApp.controllers', ['ngApp.config'])
   eddystone,
   scenario,
   debug,
-  PROXIMITY_PLATFORM
+  PROXIMITY_PLATFORM,
+  APPS
 ) {
 
   /*
@@ -86,6 +87,68 @@ angular.module('ngApp.controllers', ['ngApp.config'])
       androidLockWorkaround: PROXIMITY_PLATFORM.sqlite.androidLockWorkaround
     });
 
+    db.transaction(function(tx) {
+
+      // Reset db and localStorage for testing purposes
+      devReset = false;
+
+      if (devReset) {
+        tx.executeSql('DROP TABLE IF EXISTS settings');
+        tx.executeSql('DROP TABLE IF EXISTS favs');
+
+        localStorage.removeItem('app_language');
+        localStorage.removeItem('apps_default_loaded');
+      }
+
+      /**
+       * Create table if not exists
+       */
+
+      tx.executeSql('CREATE TABLE IF NOT EXISTS favs (id integer primary key, name text, icon text, url text, api text, created integer)');
+
+      db.transaction(function(tx) {
+
+        /**
+         * Updates for `favs` table 
+         */
+
+        tx.executeSql("PRAGMA table_info(favs);", [], function(tx, result) {
+          var table = [];
+
+          for (var i = 0; i < result.rows.length; i++) {
+            table.push(result.rows.item(i).name);
+          }
+
+          // Check if `locked` column exists
+          if (table.indexOf('locked') === -1) {
+            tx.executeSql('ALTER TABLE favs ADD COLUMN locked integer;');
+          }
+        });
+
+        /*
+         * ------------------------------------------------------------------------
+         * Load device information (uuid, geo)
+         */
+
+        DeviceService.loadDevice($scope);
+
+        /*
+         * ------------------------------------------------------------------------
+         * Wait for device geo location to be loaded (or failing)
+         */
+
+        $scope.geoLoaded = function() {
+
+          /*
+           * ------------------------------------------------------------------------
+           * Load favorites
+           */
+
+          DataService.loadFavs($scope);
+        }
+      });
+    });
+
     // Check if Bluetooth is enabled (Andoird only, iOS seems to be buggy)
     if (ionic.Platform.isAndroid()) {
       $cordovaBeacon.isBluetoothEnabled()
@@ -93,6 +156,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
           console.log("isBluetoothEnabled: " + isEnabled);
           if (!isEnabled) {
             if (ionic.Platform.isIOS()) {
+              // Commented out because it doesn't seem to work on iOS
               /*
               var alertPopup = $ionicPopup.alert({
                 template: 'Please turn on Bluetooth to track beacons.'
@@ -103,9 +167,6 @@ angular.module('ngApp.controllers', ['ngApp.config'])
                 title: '<i class="ion-bluetooth"></i> ' + $translate.instant('bluetooth'),
                 template: $translate.instant('turn_on_bluetooth')
               });
-
-              // Works for Android only, but some people don't like an app to turn on bluetooth
-              /*$cordovaBeacon.enableBluetooth();*/
             }
           }
         });
@@ -183,13 +244,6 @@ angular.module('ngApp.controllers', ['ngApp.config'])
 
   /*
    * ------------------------------------------------------------------------
-   * Load device information (uuid, geo)
-   */
-
-  DeviceService.loadDevice($scope);
-
-  /*
-   * ------------------------------------------------------------------------
    * Start tracking (monitoring region + proximity ranging) beacons
    */
 
@@ -201,20 +255,6 @@ angular.module('ngApp.controllers', ['ngApp.config'])
    */
 
   GeofenceService.startTrackingGeofences($scope);
-
-  /*
-   * ------------------------------------------------------------------------
-   * Wait for device geo location to be loaded (or failing)
-   */
-
-  $scope.geoLoaded = function() {
-    /*
-     * ------------------------------------------------------------------------
-     * Load favorites
-     */
-
-    DataService.loadFavs($scope);
-  }
 
   /*
    * Open app view with url in address bar
@@ -231,14 +271,39 @@ angular.module('ngApp.controllers', ['ngApp.config'])
   $rootScope.$on('$cordovaInAppBrowser:loadstart', function(e, event) {});
   $rootScope.$on('$cordovaInAppBrowser:loaderror', function(e, event) {});
 
-  $rootScope.$on('$cordovaInAppBrowser:loadstop', function(e, event) { 
-    $cordovaInAppBrowser.show(); 
+  $rootScope.$on('$cordovaInAppBrowser:loadstop', function(e, event) {
+    $cordovaInAppBrowser.show();
     $ionicLoading.hide();
   });
 
   $rootScope.$on('$cordovaInAppBrowser:exit', function(e, event) {
     inAppBrowser = null;
   });
+
+  /*
+   * Check if there're apps loaded by default (config.js)
+   */
+
+  if (APPS.default.length > 0) {
+
+    // Check if apps are already loaded
+    var apps_default_loaded = localStorage.getItem('apps_default_loaded');
+
+    if (apps_default_loaded == null) {
+      APPS.default.forEach(function(url) {
+        // Apps will be loaded in background, no view will be shown
+        var promise = ViewService.openView($scope, url, false, false, true, APPS.persistent, true);
+
+        promise.then(function(data) {
+          if (data) {
+            localStorage.setItem('apps_default_loaded', true);
+          } else {
+            localStorage.removeItem('apps_default_loaded');
+          }
+        });
+      });
+    }
+  }
 
   /*
    * Prevent $apply already in progress error
@@ -299,54 +364,71 @@ angular.module('ngApp.controllers', ['ngApp.config'])
   $scope.geofence = geofence;
   $scope.debug = debug;
 
-  $scope.showActionSheet = function(name, id, url) {
-    $ionicActionSheet.show({
-      buttons: [{
-        text: '<i class="icon ion-android-open dark hide-ios"></i> ' + $translate.instant('open_app')
-      }],
-      destructiveText: '<i class="icon ion-android-delete royal hide-ios"></i> ' + $translate.instant('delete_bookmark'),
-      titleText: name,
-      cancelText: $translate.instant('cancel'),
-      cancel: function() {
-        return true;
-      },
-      buttonClicked: function(index) {
+  $scope.showActionSheet = function(name, id, url, locked) {
+    locked = (locked == 1) ? true : false;
 
-        // Open app
-        if (index == 0) {
-          DebugService.log($scope, 'App opened: ' + url);
-          ViewService.openView($scope, url);
-        }
-
-        return true;
-      },
-      destructiveButtonClicked: function() {
-
-        var confirmPopup = $ionicPopup.confirm({
-          title: name,
-          template: $translate.instant('confirm_delete_bookmark'),
-          buttons: [{
-            text: $translate.instant('cancel')
-          }, {
-            text: '<b>' + $translate.instant('ok') + '</b>',
-            type: 'button-positive',
-            onTap: function(e) {
-              DebugService.log($scope, 'App deleted: ' + url);
-              DataService.deleteBookmark($scope, id);
-            }
-          }]
-        });
-        /*
-        confirmPopup.then(function(res) {
-          if(res) {
-          DebugService.log($scope, 'App deleted: ' + url);  
-          DataService.deleteBookmark($scope, id);
+    if (locked) { // No delete button
+      $ionicActionSheet.show({
+        buttons: [{
+          text: '<i class="icon ion-android-open dark hide-ios"></i> ' + $translate.instant('open_app')
+        }],
+        titleText: name,
+        cancelText: $translate.instant('cancel'),
+        cancel: function() {
+          return true;
+        },
+        buttonClicked: function(index) {
+  
+          // Open app
+          if (index == 0) {
+            DebugService.log($scope, 'App opened: ' + url);
+            ViewService.openView($scope, url);
           }
-        });
-        */
-        return true;
-      }
-    });
+  
+          return true;
+        }
+      });
+    } else { // Show delete button
+      $ionicActionSheet.show({
+        buttons: [{
+          text: '<i class="icon ion-android-open dark hide-ios"></i> ' + $translate.instant('open_app')
+        }],
+        destructiveText: '<i class="icon ion-android-delete royal hide-ios"></i> ' + $translate.instant('delete_bookmark'),
+        titleText: name,
+        cancelText: $translate.instant('cancel'),
+        cancel: function() {
+          return true;
+        },
+        buttonClicked: function(index) {
+  
+          // Open app
+          if (index == 0) {
+            DebugService.log($scope, 'App opened: ' + url);
+            ViewService.openView($scope, url);
+          }
+  
+          return true;
+        },
+        destructiveButtonClicked: function() {
+  
+          var confirmPopup = $ionicPopup.confirm({
+            title: name,
+            template: $translate.instant('confirm_delete_bookmark'),
+            buttons: [{
+              text: $translate.instant('cancel')
+            }, {
+              text: '<b>' + $translate.instant('ok') + '</b>',
+              type: 'button-positive',
+              onTap: function(e) {
+                DebugService.log($scope, 'App deleted: ' + url);
+                DataService.deleteBookmark($scope, id);
+              }
+            }]
+          });
+          return true;
+        }
+      });
+    }
   };
 })
 
@@ -442,8 +524,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
   $scope.language = $translate.use();
 
   $scope.changeLanguage = function(language) {
-    var storage = window.localStorage;
-    storage.setItem('app_language', language);
+    localStorage.setItem('app_language', language);
     $translate.use(language);
 
     console.log('Language change ' + language);
@@ -488,12 +569,6 @@ angular.module('ngApp.controllers', ['ngApp.config'])
   $scope.beacon = beacon;
   $scope.geofence = geofence;
   $scope.debug = debug;
-
-  $scope.resetDatabase = function() {
-    if (confirm('Are you sure?')) {
-      DataService.loadFavs($scope, true);
-    }
-  };
 
   $scope.clearLog = function() {
     if (confirm('Are you sure?')) {

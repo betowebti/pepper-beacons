@@ -32,11 +32,11 @@ angular.module('ngApp.DataServices', [])
    * Load favorites
    */
 
-  this.loadFavs = function($scope, resetDatabase, http) {
-    if (typeof resetDatabase === 'undefined') resetDatabase = false;
+  this.loadFavs = function($scope, http) {
     if (typeof http === 'undefined') http = true;
 
     if (http) {
+
       /**
        * Unsubscribe all beacons + geofences
        */
@@ -51,90 +51,84 @@ angular.module('ngApp.DataServices', [])
       db.transaction(function(tx) {
 
         /**
-         * Create table if not exists
+         * Get fav apps
          */
 
-        if (resetDatabase) {
-          tx.executeSql('DROP TABLE IF EXISTS settings');
-          tx.executeSql('DROP TABLE IF EXISTS favs');
-        }
-        tx.executeSql('CREATE TABLE IF NOT EXISTS favs (id integer primary key, name text, icon text, url text, api text, created integer)');
+        tx.executeSql("SELECT id, name, icon, url, api, locked FROM favs ORDER BY created ASC;", [], function(tx, result) {
 
-        db.transaction(function(tx) {
-          tx.executeSql("SELECT id, name, icon, url, api FROM favs ORDER BY created ASC;", [], function(tx, result) {
+          $scope.favs.items.length = 0;
 
-            $scope.favs.items.length = 0;
+          if (result.rows.length > 0) {
+            for (var i = 0; i < result.rows.length; i++) {
+              var id = result.rows.item(i).id;
+              var api = result.rows.item(i).api;
+              var icon = result.rows.item(i).icon;
+              var name = result.rows.item(i).name;
+              var url = result.rows.item(i).url;
+              var locked = result.rows.item(i).locked;
 
-            if (result.rows.length > 0) {
-              for (var i = 0; i < result.rows.length; i++) {
-                var id = result.rows.item(i).id;
-                var api = result.rows.item(i).api;
-                var icon = result.rows.item(i).icon;
-                var name = result.rows.item(i).name;
-                var url = result.rows.item(i).url;
+              if (icon == null || $cordovaNetwork.isOffline()) icon = 'img/icons/globe/120.png';
 
-                if (icon == null || $cordovaNetwork.isOffline()) icon = 'img/icons/globe/120.png';
+              $scope.$apply(function() {
+                if (url != null) {
+                  var fav = {
+                    'id': id,
+                    'icon': icon,
+                    'name': name,
+                    'url': url,
+                    'api': api,
+                    'locked': locked
+                  };
 
-                $scope.$apply(function() {
-                  if (url != null) {
-                    var fav = {
-                      'id': id,
-                      'icon': icon,
-                      'name': name,
-                      'url': url,
-                      'api': api
-                    };
+                  $scope.favs.items.push(fav);
+                }
+              });
 
-                    $scope.favs.items.push(fav);
-                  }
-                });
+              if (http && result.rows.item(i).url != null) {
 
-                if (http && result.rows.item(i).url != null) {
+                /**
+                 * Post to Proximity Platform API to get latest notification board changes
+                 */
 
-                  /**
-                   * Post to Proximity Platform API to get latest notification board changes
-                   */
+                var promise = ApiService.handshake($scope, result.rows.item(i).url, result.rows.item(i));
 
-                  var promise = ApiService.handshake($scope, result.rows.item(i).url, result.rows.item(i));
-
-                  promise.then(
-                    function(data) { // Request succeeded
-                      if (data !== false && data.pass_on !== false) {
-                        $scope.api.favorite_notification_boards.push(data);
-
-                        BeaconService.extractFavBeacons($scope);
-                        GeofenceService.extractFavGeofences($scope);
-
-                        DebugService.log($scope, 'Fav notification board loaded from remote ↓');
-                        DebugService.log($scope, data);
-
-                        db.transaction(function(tx) {
-                          tx.executeSql("UPDATE favs SET api = ?, name = ?, icon = ? WHERE id = ?;", [JSON.stringify(data), data.content.name, data.content.icon, data.pass_on.id], function(tx, result) {
-                            DebugService.log($scope, 'Api response updated');
-                          });
-                        });
-                      }
-                    },
-                    function(response) { // Request failed, use offline api data
-                      $scope.api.favorite_notification_boards.push(JSON.parse(api));
+                promise.then(
+                  function(data) { // Request succeeded
+                    if (data !== false && data.pass_on !== false) {
+                      $scope.api.favorite_notification_boards.push(data);
 
                       BeaconService.extractFavBeacons($scope);
                       GeofenceService.extractFavGeofences($scope);
 
-                      DebugService.log($scope, 'Fav notification board loaded from local ↓');
-                      DebugService.log($scope, JSON.parse(api));
-                    }
-                  );
-                } else {
-                  // No http
-                  $scope.$apply();
-                }
-              };
-            }
+                      DebugService.log($scope, 'Fav notification board loaded from remote ↓');
+                      DebugService.log($scope, data);
 
-            $scope.safeApply(function() {
-              $scope.favs.loading = false;
-            });
+                      db.transaction(function(tx) {
+                        tx.executeSql("UPDATE favs SET api = ?, name = ?, icon = ? WHERE id = ?;", [JSON.stringify(data), data.content.name, data.content.icon, data.pass_on.id], function(tx, result) {
+                          DebugService.log($scope, 'Api response updated');
+                        });
+                      });
+                    }
+                  },
+                  function(response) { // Request failed, use offline api data
+                    $scope.api.favorite_notification_boards.push(JSON.parse(api));
+
+                    BeaconService.extractFavBeacons($scope);
+                    GeofenceService.extractFavGeofences($scope);
+
+                    DebugService.log($scope, 'Fav notification board loaded from local ↓');
+                    DebugService.log($scope, JSON.parse(api));
+                  }
+                );
+              } else {
+                // No http
+                $scope.$apply();
+              }
+            };
+          }
+
+          $scope.safeApply(function() {
+            $scope.favs.loading = false;
           });
         });
       });
@@ -146,22 +140,26 @@ angular.module('ngApp.DataServices', [])
    * Add bookmark
    */
 
-  this.addBookmark = function($scope) {
+  this.addBookmark = function($scope, locked) {
     var self = this;
 
     var icon = $scope.view.icon;
-    if (icon == null) icon = 'img/icons/globe/120.png';
     var now = Date.now();
-    var url = (typeof $scope.view.input === 'undefined' || $scope.view.input == '') ? $scope.view.browser : $scope.view.input;
+    var url = $scope.view.url;
+
+    if (icon == null) icon = 'img/icons/globe/120.png';
+    if (typeof locked === 'undefined') locked = false; // If true, a fav can't be deleted
+    locked = (locked == true) ? 1 : 0;
 
     document.addEventListener("deviceready", function() {
       db.transaction(function(tx) {
-        tx.executeSql("SELECT id FROM favs WHERE url = ?;", [url], function(tx, result) {
+        tx.executeSql("SELECT id FROM favs WHERE url = ? AND (name IS NOT NULL AND name <> '');", [url], function(tx, result) {
+
           if (result.rows.length == 0) {
             db.transaction(function(tx) {
-              tx.executeSql("INSERT INTO favs (name, icon, url, api, created) VALUES (?, ?, ?, ?, ?);", [$scope.view.title, icon, url, JSON.stringify($scope.api.active_notification_board), now], function(tx, result) {
+              tx.executeSql("INSERT INTO favs (name, icon, url, api, created, locked) VALUES (?, ?, ?, ?, ?, ?);", [$scope.view.title, icon, url, JSON.stringify($scope.api.active_notification_board), now, locked], function(tx, result) {
                 // Reload favorites
-                self.loadFavs($scope, false, false);
+                self.loadFavs($scope, false);
               });
             });
           }
@@ -201,6 +199,15 @@ angular.module('ngApp.DataServices', [])
 
   /**
    * Get setting
+   *
+   * var promise = DataService.getSetting('some_setting');
+   *
+   * promise.then(function(value) {
+   *   if (value != null) {
+   *     console.log(value);
+   *   }
+   * });
+   *
    */
 
   this.getSetting = function(name) {
@@ -234,6 +241,9 @@ angular.module('ngApp.DataServices', [])
 
   /**
    * Set setting
+   *
+   * DataService.setSetting('some_setting');
+   *
    */
 
   this.setSetting = function(name, value) {

@@ -61,7 +61,7 @@
       </div>
     </div>
     <section ng-show="favs.items.length > 0">
-      <div ng-repeat="fav in favs.items" class="text-center" style="float:left; width:33.2%; margin-top:20px" ng-click="showActionSheet('{{ fav.name | escapeSingleQuote }}', '{{ fav.id }}', '{{ fav.url }}')">
+      <div ng-repeat="fav in favs.items" class="text-center" style="float:left; width:33.2%; margin-top:20px" ng-click="showActionSheet('{{ fav.name | escapeSingleQuote }}', '{{ fav.id }}', '{{ fav.url }}', '{{ fav.locked }}')">
         <img ng-src="{{ fav.icon }}" class="app-icon">
         <div class="app-name">{{ fav.name }}</div>
       </div>

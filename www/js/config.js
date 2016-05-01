@@ -23,19 +23,21 @@ angular.module('ngApp.config', [])
 
   /*
    * ---------------------------------------------------
-   * This is the Proximity Platform API endpoint
+   * The Proximity Platform API endpoint
    * ---------------------------------------------------
    */
 
   api_endpoint: 'https://platform.madewithpepper.com',
 
   /*
+   * ---------------------------------------------------
    * SQLite db config
    * 
    * location
    * 0 (default): Documents - visible to iTunes and backed up by iCloud
    * 1: Library - backed up by iCloud, NOT visible to iTunes
    * 2: Library/LocalDatabase - NOT visible to iTunes and NOT backed up by iCloud
+   * ---------------------------------------------------
    */
 
   sqlite: {
@@ -44,4 +46,28 @@ angular.module('ngApp.config', [])
     androidDatabaseImplementation: 2,
     androidLockWorkaround: 1
   }
+})
+
+.constant('APPS', {
+
+  /*
+   * ---------------------------------------------------
+   * Apps which are bookmarked by default, no need to
+   * scan a QR or enter a code. This array of urls (and 
+   * associated scenarios) is only loaded after opening
+   * the app for the first time.
+   *
+   * E.g.: ['https://platform.madewithpepper.com/mobile/tour360']
+   * ---------------------------------------------------
+   */
+
+  default: [],
+
+  /*
+   * ---------------------------------------------------
+   * True if default apps can't be deleted by the user.
+   * ---------------------------------------------------
+   */
+
+  persistent: false
 });

@@ -4,6 +4,7 @@ var inAppBrowserTarget = '_blank';
 var db, inAppBrowserCfg;
 var beacon_scenarios = Array();
 var geofence_scenarios = Array();
+var localStorage = window.localStorage;
 
 var ngApp = angular.module('ngApp', [
   'ionic',
@@ -48,8 +49,7 @@ var ngApp = angular.module('ngApp', [
     }
 
     // Get language from localStorage
-    var storage = window.localStorage;
-    var app_language = storage.getItem('app_language');
+    var app_language = localStorage.getItem('app_language');
 
     if (app_language == null)
     {
