@@ -95,19 +95,26 @@ angular.module('ngApp.DataServices', [])
                 promise.then(
                   function(data) { // Request succeeded
                     if (data !== false && data.pass_on !== false) {
-                      $scope.api.favorite_notification_boards.push(data);
+                      if (data.content.found) {
+                        $scope.api.favorite_notification_boards.push(data);
 
-                      BeaconService.extractFavBeacons($scope);
-                      GeofenceService.extractFavGeofences($scope);
+                        BeaconService.extractFavBeacons($scope);
+                        GeofenceService.extractFavGeofences($scope);
 
-                      DebugService.log($scope, 'Fav notification board loaded from remote ↓');
-                      DebugService.log($scope, data);
+                        DebugService.log($scope, 'Fav notification board loaded from remote ↓');
+                        DebugService.log($scope, data);
 
-                      db.transaction(function(tx) {
-                        tx.executeSql("UPDATE favs SET api = ?, name = ?, icon = ? WHERE id = ?;", [JSON.stringify(data), data.content.name, data.content.icon, data.pass_on.id], function(tx, result) {
-                          DebugService.log($scope, 'Api response updated');
+                        db.transaction(function(tx) {
+                          tx.executeSql("UPDATE favs SET api = ?, name = ?, icon = ? WHERE id = ?;", [JSON.stringify(data), data.content.name, data.content.icon, data.pass_on.id], function(tx, result) {
+                            DebugService.log($scope, 'Api response updated');
+                          });
                         });
-                      });
+                      } else {
+                        // Remove fav because remove app wasn't found (possibly deleted remotely)
+                        self.deleteBookmark($scope, data.pass_on.id);
+
+                        DebugService.log($scope, 'Deleted fav because remove app wasn\'t found');
+                      }
                     }
                   },
                   function(response) { // Request failed, use offline api data
