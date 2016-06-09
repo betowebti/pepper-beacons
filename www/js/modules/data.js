@@ -110,10 +110,10 @@ angular.module('ngApp.DataServices', [])
                           });
                         });
                       } else {
-                        // Remove fav because remove app wasn't found (possibly deleted remotely)
+                        // Remove fav because remote app wasn't found (possibly deleted remotely)
                         self.deleteBookmark($scope, data.pass_on.id);
 
-                        DebugService.log($scope, 'Deleted fav because remove app wasn\'t found');
+                        DebugService.log($scope, 'Deleted fav because remote app wasn\'t found');
                       }
                     }
                   },
