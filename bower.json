@@ -8,9 +8,10 @@
     "angular-resource": "~1.5.0",
     "ngCordova": "~0.1.26-alpha",
     "angular-moment": "~1.0.0-beta.6",
-    "moment-timezone": "~0.5.0",
+    "moment-timezone": "~0.5.4",
     "angular-translate": "~2.11.0",
-    "angular-translate-loader-static-files": "~2.11.0"
+    "angular-translate-loader-static-files": "~2.11.0",
+    "ngstorage": "^0.3.10"
   },
   "resolutions": {
     "angular": "1.5.5"

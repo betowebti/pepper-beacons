@@ -28,6 +28,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
 .controller('AppCtrl', function(
   $scope,
   $rootScope,
+  $localStorage,
   $window,
   $translate,
   $ionicLoading,
@@ -62,6 +63,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
    * Globals
    */
 
+  $scope.$storage = $localStorage;
   $scope.favs = favs;
   $scope.view = view;
   $scope.device = device;
@@ -96,8 +98,8 @@ angular.module('ngApp.controllers', ['ngApp.config'])
         tx.executeSql('DROP TABLE IF EXISTS settings');
         tx.executeSql('DROP TABLE IF EXISTS favs');
 
-        localStorage.removeItem('app_language');
-        localStorage.removeItem('apps_default_loaded');
+        delete $scope.$storage.app_language;
+        delete $scope.$storage.apps_default_loaded;
       }
 
       /**
@@ -287,7 +289,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
   if (APPS.default.length > 0) {
 
     // Check if apps are already loaded
-    var apps_default_loaded = localStorage.getItem('apps_default_loaded');
+    var apps_default_loaded = $scope.$storage.apps_default_loaded;
 
     if (apps_default_loaded == null) {
       APPS.default.forEach(function(url) {
@@ -296,9 +298,9 @@ angular.module('ngApp.controllers', ['ngApp.config'])
 
         promise.then(function(data) {
           if (data) {
-            localStorage.setItem('apps_default_loaded', true);
+            $scope.$storage.apps_default_loaded = true;
           } else {
-            localStorage.removeItem('apps_default_loaded');
+            delete $scope.$storage.apps_default_loaded;
           }
         });
       });
@@ -514,7 +516,7 @@ angular.module('ngApp.controllers', ['ngApp.config'])
  * ---------------------------------------------------
  */
 
-.controller('SettingsCtrl', function($scope, $translate, DataService, debug) {
+.controller('SettingsCtrl', function($scope, $localStorage, $translate, DataService, debug) {
 
   /*
    * Globals
@@ -522,9 +524,10 @@ angular.module('ngApp.controllers', ['ngApp.config'])
 
   $scope.debug = debug;
   $scope.language = $translate.use();
+  $scope.$storage = $localStorage;
 
   $scope.changeLanguage = function(language) {
-    localStorage.setItem('app_language', language);
+    $scope.$storage.app_language = language;
     $translate.use(language);
 
     console.log('Language change ' + language);

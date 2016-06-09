@@ -4,13 +4,13 @@ var inAppBrowserTarget = '_blank';
 var db, inAppBrowserCfg;
 var beacon_scenarios = Array();
 var geofence_scenarios = Array();
-var localStorage = window.localStorage;
 
 var ngApp = angular.module('ngApp', [
   'ionic',
   'pascalprecht.translate',
   'ngCordova',
   'ngResource',
+  'ngStorage',
   'ngCordovaBeacon',
   'angularMoment',
   'ngApp.controllers',
@@ -36,7 +36,7 @@ var ngApp = angular.module('ngApp', [
   'ngApp.ScenarioServices'
 ])
 
-.run(function($ionicPlatform, $cordovaStatusbar, $window, $translate) {
+.run(function($ionicPlatform, $cordovaStatusbar, $window, $localStorage, $translate) {
 
   $ionicPlatform.ready(function() {
     if (ionic.Platform.isIOS()) {
@@ -49,7 +49,7 @@ var ngApp = angular.module('ngApp', [
     }
 
     // Get language from localStorage
-    var app_language = localStorage.getItem('app_language');
+    var app_language = $localStorage.app_language;
 
     if (app_language == null)
     {

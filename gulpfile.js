@@ -60,6 +60,7 @@ gulp.task('copy', function() {
     './bower_components/angular-translate/angular-translate.min.js',
     './bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js',
     './bower_components/angular-moment/angular-moment.min.js',
+    './bower_components/ngstorage/ngStorage.min.js',
     './bower_components/ionic/js/ionic.bundle.min.js',
     './bower_components/ionic/fonts/*.*',
     './bower_components/moment-timezone/builds/moment-timezone-with-data-2010-2020.min.js',
