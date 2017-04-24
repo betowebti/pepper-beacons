@@ -1,5 +1,5 @@
 # Ionic Proximity Marketing App
-Copyright Sem Kokhuis / Made with Pepper (2014-2016) - This software is licensed under the GNU LGPLv3.
+## This repo is no longer maintained, check out the Ionic 2 version here: https://github.com/madewithpepper/Pulse-Proximity-App
 
 ![Pepper Beacons](visual.png)
 
